@@ -484,7 +484,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
               <Users className="h-4 w-4 text-amber-400" />
               <span>Follower Count:</span>
               <span className="font-mono font-bold text-amber-300 text-sm">
-                {brand.currentFollowers.toLocaleString()}
+                {(brand?.currentFollowers || 0).toLocaleString()}
               </span>
             </div>
           </div>

@@ -8,6 +8,15 @@ import {
   setCachedAccessToken,
 } from './services/auth';
 import { Brand, ContentItem, ContentStatus } from './types/content';
+import { ClientBrandKit, SocialMilestone, SocialPlatform } from './types/brandKit';
+import {
+  loadStoredClientKits,
+  saveClientKits,
+  loadActiveClientId,
+  saveActiveClientId,
+} from './utils/brandKitData';
+import { ClientThemeSwitcher } from './components/ClientThemeSwitcher';
+import { BrandKitWorkspace } from './components/BrandKitWorkspace';
 import {
   loadSavedBrands,
   loadSavedContent,
@@ -24,6 +33,7 @@ import { GoogleCalendarIntegration } from './components/GoogleCalendarIntegratio
 import { DeadlineNotificationSystem } from './components/DeadlineNotificationSystem';
 import { GoogleTasksIntegration } from './components/GoogleTasksIntegration';
 import { ClientDashboard } from './components/ClientDashboard';
+import { Interactive3DFollowerText } from './components/Interactive3DFollowerText';
 import {
   Eye,
   Users,
@@ -53,9 +63,20 @@ export default function App() {
 
   // App view mode: Admin Studio vs Client Presentation
   const [viewMode, setViewMode] = useState<'admin' | 'client'>('admin');
-  const [adminTab, setAdminTab] = useState<'reels' | 'sheets' | 'calendar' | 'notifications' | 'tasks'>('reels');
+  const [adminTab, setAdminTab] = useState<
+    'brand-kit' | 'reels' | 'sheets' | 'calendar' | 'notifications' | 'tasks'
+  >('brand-kit');
 
-  // Brands and Content state
+  // Brand Kits state with LocalStorage persistence - Blank database by default
+  const [clientKits, setClientKits] = useState<ClientBrandKit[]>(() => loadStoredClientKits());
+  const [activeClientKitId, setActiveClientKitId] = useState<string>(() =>
+    loadActiveClientId(loadStoredClientKits())
+  );
+  const [isHighContrastMode, setIsHighContrastMode] = useState<boolean>(() => {
+    return localStorage.getItem('social_brand_kit_contrast_mode') === 'true';
+  });
+
+  // Brands and Content state - Zero initial data
   const [brands, setBrands] = useState<Brand[]>(() => loadSavedBrands());
   const [activeBrandId, setActiveBrandId] = useState<string>(() => loadSavedBrands()[0]?.id || '');
   const [contentItems, setContentItems] = useState<ContentItem[]>(() => loadSavedContent());
@@ -65,6 +86,7 @@ export default function App() {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   // Modal dialog states
+  const [isAddClientKitModalOpen, setIsAddClientKitModalOpen] = useState(false);
   const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
   const [metricsTargetItem, setMetricsTargetItem] = useState<ContentItem | null>(null);
 
@@ -76,6 +98,125 @@ export default function App() {
 
   // Delete confirmation modal
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
+
+  // Clear legacy mock datasets on first launch
+  useEffect(() => {
+    try {
+      localStorage.removeItem('the_social_brand_kit_clients_v2');
+      localStorage.removeItem('the_social_brand_kit_active_client_id');
+      localStorage.removeItem('brandpulse_brands_v1');
+      localStorage.removeItem('brandpulse_content_v1');
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  // LocalStorage persistence effects
+  useEffect(() => {
+    saveClientKits(clientKits);
+  }, [clientKits]);
+
+  useEffect(() => {
+    saveActiveClientId(activeClientKitId);
+  }, [activeClientKitId]);
+
+  useEffect(() => {
+    saveBrandsToStorage(brands);
+  }, [brands]);
+
+  useEffect(() => {
+    saveContentToStorage(contentItems);
+  }, [contentItems]);
+
+  useEffect(() => {
+    localStorage.setItem('social_brand_kit_contrast_mode', isHighContrastMode ? 'true' : 'false');
+  }, [isHighContrastMode]);
+
+  // Active Client Kit (or null if database is empty)
+  const activeClientKit: ClientBrandKit | null =
+    clientKits.find((k) => k.id === activeClientKitId) || clientKits[0] || null;
+
+  // Active Brand (synced to active kit, or null)
+  const activeBrand: Brand | null =
+    brands.find((b) => b.id === activeBrandId) ||
+    brands[0] ||
+    (activeClientKit
+      ? {
+          id: activeClientKit.id,
+          name: activeClientKit.companyName,
+          category: activeClientKit.category,
+          clientName: activeClientKit.clientName,
+          clientEmail: activeClientKit.footprint?.email || 'client@brand.com',
+          currentFollowers: activeClientKit.socialMilestones[0]?.currentCount || 0,
+          targetFollowers: activeClientKit.socialMilestones[0]?.targetCount || 10000,
+          followerHistory: [
+            {
+              date: new Date().toISOString().split('T')[0],
+              count: activeClientKit.socialMilestones[0]?.currentCount || 0,
+              note: 'Initial brand kit creation',
+            },
+          ],
+          primaryColor: activeClientKit.primaryColor,
+          accentColor: activeClientKit.accentColor,
+          createdAt: activeClientKit.createdAt,
+        }
+      : null);
+
+  const handleUpdateClientKit = (updatedKit: ClientBrandKit) => {
+    setClientKits((prev) =>
+      prev.map((k) => (k.id === updatedKit.id ? updatedKit : k))
+    );
+
+    // Sync follower count with brand if active
+    const activeMilestone = updatedKit.socialMilestones.find(
+      (m) => m.platform === updatedKit.activePlatform
+    );
+    if (activeMilestone) {
+      setBrands((prev) =>
+        prev.map((b) =>
+          b.id === activeBrandId
+            ? { ...b, currentFollowers: activeMilestone.currentCount }
+            : b
+        )
+      );
+    }
+  };
+
+  const handleAddNewClientKit = (newKit: ClientBrandKit) => {
+    setClientKits((prev) => [newKit, ...prev]);
+    setActiveClientKitId(newKit.id);
+
+    // Also add to brands list so content pipeline can use it
+    const newBrand: Brand = {
+      id: newKit.id,
+      name: newKit.companyName,
+      category: newKit.category,
+      clientName: newKit.clientName,
+      clientEmail: newKit.footprint.email || 'client@brand.com',
+      currentFollowers: newKit.socialMilestones[0]?.currentCount || 0,
+      targetFollowers: newKit.socialMilestones[0]?.targetCount || 10000,
+      followerHistory: [
+        {
+          date: new Date().toISOString().split('T')[0],
+          count: newKit.socialMilestones[0]?.currentCount || 0,
+          note: 'Initial brand kit creation',
+        },
+      ],
+      primaryColor: newKit.primaryColor,
+      accentColor: newKit.accentColor,
+      createdAt: new Date().toISOString(),
+    };
+    setBrands((prev) => [newBrand, ...prev]);
+    setActiveBrandId(newKit.id);
+  };
+
+  const handleSelectClientKit = (id: string) => {
+    setActiveClientKitId(id);
+    const matchingBrand = brands.find((b) => b.id === id);
+    if (matchingBrand) {
+      setActiveBrandId(id);
+    }
+  };
 
   // Initialize Auth listener on mount
   useEffect(() => {
@@ -94,17 +235,9 @@ export default function App() {
     };
   }, []);
 
-  // Save changes to localStorage
-  useEffect(() => {
-    saveBrandsToStorage(brands);
-  }, [brands]);
-
-  useEffect(() => {
-    saveContentToStorage(contentItems);
-  }, [contentItems]);
-
-  const activeBrand = brands.find((b) => b.id === activeBrandId) || brands[0];
-  const brandContentItems = contentItems.filter((i) => i.brandId === activeBrand?.id);
+  const brandContentItems = activeBrand
+    ? contentItems.filter((i) => i.brandId === activeBrand.id)
+    : [];
 
   // Filtered items
   const filteredItems = brandContentItems.filter((item) => {
@@ -161,7 +294,7 @@ export default function App() {
               comments: metrics.comments,
               shares: metrics.shares,
               inquiries: metrics.inquiries,
-              followersSnapshot: activeBrand.currentFollowers,
+              followersSnapshot: activeBrand ? activeBrand.currentFollowers : 0,
               note: metrics.note,
             },
           ];
@@ -184,6 +317,7 @@ export default function App() {
 
   // Manual brand followers update handler
   const handleUpdateBrandFollowers = (newCount: number, note?: string) => {
+    if (!activeBrand) return;
     setBrands((prev) =>
       prev.map((b) => {
         if (b.id === activeBrand.id) {
@@ -243,12 +377,15 @@ export default function App() {
   const handleImportItems = (newItems: ContentItem[]) => {
     setContentItems((prev) => {
       // Merge by item number or id
-      const otherBrands = prev.filter((i) => i.brandId !== activeBrand.id);
+      const otherBrands = activeBrand
+        ? prev.filter((i) => i.brandId !== activeBrand.id)
+        : prev;
       return [...otherBrands, ...newItems];
     });
   };
 
   const handleUpdateBrandSheetInfo = (sheetId: string, sheetUrl: string) => {
+    if (!activeBrand) return;
     setBrands((prev) =>
       prev.map((b) =>
         b.id === activeBrand.id
@@ -280,301 +417,306 @@ export default function App() {
   const totalBrandViews = brandContentItems.reduce((acc, curr) => acc + curr.views, 0);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950">
-      {/* Top Main Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
+    <div
+      className="min-h-screen bg-[#09090b] bg-grid-minimal text-zinc-100 selection:bg-white selection:text-black transition-colors duration-300 relative"
+      style={
+        {
+          '--client-primary': activeClientKit?.primaryColor || '#ffffff',
+          '--client-accent': activeClientKit?.accentColor || '#ffffff',
+          '--client-glow': activeClientKit?.highlightGlow || 'rgba(255, 255, 255, 0.1)',
+        } as React.CSSProperties
+      }
+    >
+      {/* Top Main Navigation Bar - Minimalist Monochrome */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           {/* Logo & Brand Switcher */}
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 font-bold">
-              <Sparkles className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black shadow-md font-black transition-transform hover:scale-105">
+              <Sparkles className="h-4 w-4 fill-black" />
             </div>
 
-            <div>
+            <div className="flex flex-col justify-center">
               <div className="flex items-center gap-2">
-                <span className="text-base font-extrabold tracking-tight text-slate-100">
-                  The Social Brand <span className="text-amber-400">Kit</span>
+                <span className="text-sm sm:text-base font-bold tracking-tight text-white">
+                  The Social Brand <span className="text-zinc-300 font-light">Kit</span>
                 </span>
-                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-300 border border-white/10 uppercase tracking-wider">
                   STUDIO
                 </span>
               </div>
 
               {/* Active Brand Selector */}
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <Building2 className="h-3 w-3 text-amber-400" />
-                <select
-                  value={activeBrandId}
-                  onChange={(e) => setActiveBrandId(e.target.value)}
-                  className="bg-transparent font-semibold text-slate-200 focus:outline-none cursor-pointer hover:text-amber-300 transition-colors"
-                >
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id} className="bg-slate-900 text-slate-100">
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => {
-                    setEditingBrand(null);
-                    setIsBrandModalOpen(true);
-                  }}
-                  className="text-amber-400 hover:text-amber-300 text-[11px] underline pl-1"
-                >
-                  + Add Brand
-                </button>
+              <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                <Building2 className="h-3 w-3 text-zinc-400" />
+                <span className="font-medium text-zinc-300">
+                  {activeClientKit ? activeClientKit.companyName : 'Zero Brands Configured'}
+                </span>
+                {activeClientKit && (
+                  <span className="text-zinc-500 font-mono text-[10px]">
+                    ({activeClientKit.socialMilestones[0]?.handle || '@brand'})
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Mode Switcher & Google Workspace Auth */}
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle (Admin vs Client) */}
-            <div className="flex rounded-xl bg-slate-900 p-1 border border-slate-800 text-xs">
-              <button
-                onClick={() => setViewMode('admin')}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                  viewMode === 'admin'
-                    ? 'bg-amber-500 text-slate-950 shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Sliders className="h-3.5 w-3.5" />
-                <span>Admin Studio</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('client')}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-semibold transition-all ${
-                  viewMode === 'client'
-                    ? 'bg-cyan-500 text-slate-950 shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <Presentation className="h-3.5 w-3.5" />
-                <span>Client View</span>
-              </button>
-            </div>
-
-            {/* Google Workspace Sign-In per skill guidelines */}
-            {user ? (
-              <div className="flex items-center gap-2 rounded-xl bg-slate-900/90 px-3 py-1.5 border border-slate-800 text-xs">
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || 'User'}
-                    className="h-6 w-6 rounded-full border border-amber-500/40"
-                  />
-                ) : (
-                  <div className="h-6 w-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-xs">
-                    {user.email?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="hidden sm:inline font-medium text-slate-300 max-w-[140px] truncate">
-                  {user.displayName || user.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-slate-400 hover:text-rose-400 p-1 transition-colors"
-                  title="Sign out of Google"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleGoogleSignIn}
-                disabled={isSigningIn}
-                className="gsi-material-button flex items-center gap-2 rounded-xl bg-white hover:bg-slate-100 text-slate-900 px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all border border-slate-200"
-              >
-                <div className="gsi-material-button-icon h-4 w-4">
-                  <svg
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 48 48"
-                    className="h-4 w-4"
-                  >
-                    <path
-                      fill="#EA4335"
-                      d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
-                    />
-                    <path
-                      fill="#4285F4"
-                      d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-                    />
-                    <path fill="none" d="M0 0h48v48H0z" />
-                  </svg>
-                </div>
-                <span>{isSigningIn ? 'Connecting...' : 'Sign in with Google'}</span>
-              </button>
-            )}
+          {/* Minimalist Live Status Indicator */}
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                activeClientKit ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'
+              }`}
+            />
+            <span className="font-mono text-[11px] text-zinc-300">
+              {activeClientKit ? 'Live Kit' : 'Blank Studio'}
+            </span>
           </div>
         </div>
       </header>
 
+      {/* Dynamic Client Theme Switcher & Toolbar */}
+      <ClientThemeSwitcher
+        clients={clientKits}
+        activeClient={activeClientKit}
+        onSelectClient={handleSelectClientKit}
+        onAddNewClient={handleAddNewClientKit}
+        isHighContrastMode={isHighContrastMode}
+        onToggleHighContrast={() => setIsHighContrastMode(!isHighContrastMode)}
+        isAddModalOpen={isAddClientKitModalOpen}
+        setIsAddModalOpen={setIsAddClientKitModalOpen}
+      />
+
       {/* Main Content Area */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
-        {/* Client View Mode */}
-        {viewMode === 'client' ? (
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
+        {!activeClientKit ? (
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/15 bg-zinc-950/60 p-12 sm:p-20 text-center backdrop-blur-xl shadow-2xl">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white shadow-inner">
+              <Sparkles className="h-8 w-8 stroke-[1.5]" />
+            </div>
+
+            <span className="mt-5 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-[11px] text-zinc-300 uppercase tracking-widest">
+              Zero Database Records
+            </span>
+
+            <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Studio Database is Blank
+            </h2>
+
+            <p className="mt-2 max-w-md text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              All demo brand kits, sample assets, and follower counts have been deleted. There are zero data records in the database. You can start creating your brand kits now or after publishing the app.
+            </p>
+
+            <button
+              onClick={() => setIsAddClientKitModalOpen(true)}
+              className="mt-6 flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black px-6 py-3 text-sm font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5]" />
+              <span>+ Create First Brand Kit</span>
+            </button>
+          </div>
+        ) : viewMode === 'client' ? (
           <ClientDashboard
-            brand={activeBrand}
+            brand={activeBrand!}
             items={brandContentItems}
             onOpenAdmin={() => setViewMode('admin')}
           />
         ) : (
           /* Admin Studio View Mode */
           <div className="space-y-6">
-            {/* Top Quick Actions Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Active Brand Portfolio
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-extrabold text-slate-100">{activeBrand.name}</h2>
-                    <button
-                      onClick={() => {
-                        setEditingBrand(activeBrand);
-                        setIsBrandModalOpen(true);
-                      }}
-                      className="text-xs text-amber-400 hover:text-amber-300 underline"
-                    >
-                      Edit
-                    </button>
+            {/* Top Quick Actions Bar - Minimalist Monochrome & Perfectly Aligned */}
+            {activeBrand && (
+              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl border border-white/10 bg-zinc-950/90 p-4 sm:px-6 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.6)]">
+                {/* Left: Brand Identity & Aligned Metrics */}
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                        Active Portfolio
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
+                        {activeBrand.name}
+                      </h2>
+                      <button
+                        onClick={() => {
+                          setEditingBrand(activeBrand);
+                          setIsBrandModalOpen(true);
+                        }}
+                        className="text-[10px] font-mono text-zinc-400 hover:text-white px-2 py-0.5 rounded border border-white/10 bg-white/5 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="hidden sm:block h-8 w-px bg-white/10" />
+
+                  <div className="flex items-center gap-5 text-xs">
+                    <div className="flex flex-col">
+                      <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
+                        Verified Views
+                      </span>
+                      <span className="font-mono font-bold text-white text-sm tracking-tight mt-0.5">
+                        {totalBrandViews.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="h-6 w-px bg-white/10" />
+
+                    <div className="flex flex-col">
+                      <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
+                        Followers
+                      </span>
+                      <div className="mt-0.5">
+                        <Interactive3DFollowerText
+                          count={activeBrand.currentFollowers}
+                          size="compact"
+                          onClick={() => {
+                            setMetricsTargetItem(null);
+                            setIsMetricsModalOpen(true);
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="hidden sm:block h-8 w-px bg-slate-800" />
+                {/* Right: Perfectly Aligned Minimalist Monochrome Actions */}
+                <div className="flex items-center gap-2.5 self-start md:self-auto">
+                  <button
+                    onClick={() => {
+                      setMetricsTargetItem(null);
+                      setIsMetricsModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs px-4 py-2 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Eye className="h-3.5 w-3.5 stroke-[2.5]" />
+                    <span>Update Views &amp; Followers</span>
+                  </button>
 
-                <div className="hidden sm:flex items-center gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-400 block text-[10px] uppercase">Verified Views</span>
-                    <span className="font-mono font-bold text-cyan-300 text-sm">
-                      {totalBrandViews.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px] uppercase">Followers</span>
-                    <span className="font-mono font-bold text-amber-300 text-sm">
-                      {activeBrand.currentFollowers.toLocaleString()}
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setEditingContentItem(null);
+                      setIsContentModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border border-white/15 hover:border-white/30 font-medium text-xs px-3.5 py-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Creative</span>
+                  </button>
                 </div>
               </div>
+            )}
 
-              {/* Action Buttons: Update Views Personally & Add Reel */}
-              <div className="flex items-center gap-2.5">
-                <button
-                  onClick={() => {
-                    setMetricsTargetItem(null);
-                    setIsMetricsModalOpen(true);
-                  }}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-4 py-2 text-xs font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition-all"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>Update Views &amp; Followers</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEditingContentItem(null);
-                    setIsContentModalOpen(true);
-                  }}
-                  className="flex items-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Creative</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 3D Holographic Stage */}
-            <ThreeScene
-              brand={activeBrand}
-              items={brandContentItems}
-              selectedItemId={selectedItemId}
-              onSelectItem={(item) => {
-                setSelectedItemId(item.id);
-                setMetricsTargetItem(item);
-                setIsMetricsModalOpen(true);
-              }}
-            />
-
-            {/* Admin Tool Navigation Tabs */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2 text-xs font-semibold">
+            {/* Admin Tool Navigation Tabs - Minimalist Monochrome */}
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-white/10 pb-2 text-xs">
               <button
-                onClick={() => setAdminTab('reels')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all ${
-                  adminTab === 'reels'
-                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                onClick={() => setAdminTab('brand-kit')}
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                  adminTab === 'brand-kit'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <LayoutGrid className="h-4 w-4" />
-                <span>Reel Pipeline ({brandContentItems.length})</span>
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Brand Kit Workspace</span>
+                <span
+                  className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${
+                    adminTab === 'brand-kit' ? 'bg-black text-white' : 'bg-white/10 text-zinc-300'
+                  }`}
+                >
+                  CORE
+                </span>
+              </button>
+
+              <button
+                onClick={() => setAdminTab('reels')}
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                  adminTab === 'reels'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span>3D Stage &amp; Reels ({brandContentItems.length})</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('sheets')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'sheets'
-                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <FileSpreadsheet className="h-4 w-4" />
+                <FileSpreadsheet className="h-3.5 w-3.5" />
                 <span>Google Sheets &amp; Analyzer</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('calendar')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'calendar'
-                    ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Calendar className="h-4 w-4" />
-                <span>Google Calendar Releases</span>
+                <Calendar className="h-3.5 w-3.5" />
+                <span>Google Calendar</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('notifications')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'notifications'
-                    ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Bell className="h-4 w-4" />
+                <Bell className="h-3.5 w-3.5" />
                 <span>Deadline Alerts &amp; Gmail</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('tasks')}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 transition-all ${
+                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'tasks'
-                    ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-black font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <CheckSquare className="h-4 w-4" />
+                <CheckSquare className="h-3.5 w-3.5" />
                 <span>Google Tasks</span>
               </button>
             </div>
 
-            {/* Tab 1: Reel Pipeline Grid */}
+            {/* Tab 0: Brand Kit Flagship Workspace */}
+            {adminTab === 'brand-kit' && (
+              <BrandKitWorkspace
+                client={activeClientKit}
+                onUpdateClient={handleUpdateClientKit}
+                isHighContrastMode={isHighContrastMode}
+              />
+            )}
+
+            {/* Tab 1: 3D Stage & Reel Pipeline Grid */}
             {adminTab === 'reels' && (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* 3D Holographic Stage */}
+                <ThreeScene
+                  brand={activeBrand}
+                  items={brandContentItems}
+                  selectedItemId={selectedItemId}
+                  onSelectItem={(item) => {
+                    setSelectedItemId(item.id);
+                    setMetricsTargetItem(item);
+                    setIsMetricsModalOpen(true);
+                  }}
+                />
+
                 {/* Filter and stats row */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-xs">
@@ -677,20 +819,22 @@ export default function App() {
       </main>
 
       {/* Manual Metrics & Followers Verification Modal */}
-      <ManualMetricsModal
-        isOpen={isMetricsModalOpen}
-        onClose={() => setIsMetricsModalOpen(false)}
-        brand={activeBrand}
-        item={metricsTargetItem}
-        onUpdateBrandFollowers={handleUpdateBrandFollowers}
-        onUpdateItemMetrics={handleUpdateItemMetrics}
-      />
+      {activeBrand && (
+        <ManualMetricsModal
+          isOpen={isMetricsModalOpen}
+          onClose={() => setIsMetricsModalOpen(false)}
+          brand={activeBrand}
+          item={metricsTargetItem}
+          onUpdateBrandFollowers={handleUpdateBrandFollowers}
+          onUpdateItemMetrics={handleUpdateItemMetrics}
+        />
+      )}
 
       {/* Content Form Modal (Add / Edit Reel) */}
       <ContentFormModal
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
-        brandId={activeBrand.id}
+        brandId={activeBrand ? activeBrand.id : ''}
         item={editingContentItem}
         nextItemNumber={brandContentItems.length + 1}
         onSave={handleSaveContentItem}
