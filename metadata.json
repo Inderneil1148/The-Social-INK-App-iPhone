@@ -1,0 +1,6 @@
+{
+  "name": "BrandPulse 3D Content Studio",
+  "description": "3D animated brand content planning, Google Sheets analytics, calendar scheduling, and automated deadline notifications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
