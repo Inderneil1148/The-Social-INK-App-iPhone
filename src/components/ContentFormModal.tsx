@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ContentItem, ContentStatus, PlatformType } from '../types/content';
 import { X, Save, Video, Calendar, Sparkles } from 'lucide-react';
 
@@ -19,8 +20,6 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
   nextItemNumber,
   onSave,
 }) => {
-  if (!isOpen) return null;
-
   const [title, setTitle] = useState(item?.title || '');
   const [mediaUrl, setMediaUrl] = useState(item?.mediaUrl || '');
   const [notes, setNotes] = useState(item?.notes || '');
@@ -33,6 +32,7 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
   const [views, setViews] = useState<number>(item?.views || 0);
 
   useEffect(() => {
+    if (!isOpen) return;
     if (item) {
       setTitle(item.title);
       setMediaUrl(item.mediaUrl);
@@ -52,7 +52,7 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
       setDeadlineTime('18:00');
       setViews(0);
     }
-  }, [item]);
+  }, [isOpen, item]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +85,9 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
     onClose();
   };
 
-  return (
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-xl rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl text-slate-100 my-auto max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
@@ -225,6 +227,7 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

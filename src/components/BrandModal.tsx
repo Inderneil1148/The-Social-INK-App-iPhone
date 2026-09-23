@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Brand } from '../types/content';
 import { X, Save, Building2, User, Mail, Target, Palette } from 'lucide-react';
 
@@ -15,8 +16,6 @@ export const BrandModal: React.FC<BrandModalProps> = ({
   brand,
   onSave,
 }) => {
-  if (!isOpen) return null;
-
   const [name, setName] = useState(brand?.name || '');
   const [category, setCategory] = useState(brand?.category || '');
   const [clientName, setClientName] = useState(brand?.clientName || '');
@@ -27,6 +26,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
   const [accentColor, setAccentColor] = useState(brand?.accentColor || '#38BDF8');
 
   useEffect(() => {
+    if (!isOpen) return;
     if (brand) {
       setName(brand.name);
       setCategory(brand.category);
@@ -46,7 +46,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
       setPrimaryColor('#D97706');
       setAccentColor('#38BDF8');
     }
-  }, [brand]);
+  }, [isOpen, brand]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,9 @@ export const BrandModal: React.FC<BrandModalProps> = ({
     onClose();
   };
 
-  return (
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl text-slate-100 my-auto max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
@@ -211,6 +213,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   Copy,
@@ -104,11 +105,12 @@ export const IdentityAssetsCard: React.FC<IdentityAssetsCardProps> = ({
       }}
     >
       {/* Toast Feedback Pill */}
-      {copiedCode && (
-        <div className="animate-fade-in fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
+      {copiedCode && typeof document !== 'undefined' && createPortal(
+        <div className="animate-fade-in fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
           <Check className="h-4 w-4 stroke-[3]" />
           <span>Copied {copiedCode} to clipboard!</span>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Card Header */}

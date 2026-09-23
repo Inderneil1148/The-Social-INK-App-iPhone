@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   StickyNote,
   Plus,
@@ -48,6 +49,7 @@ export const QuickNotesCard: React.FC<QuickNotesCardProps> = ({ client }) => {
   const [newCategory, setNewCategory] = useState<'Idea' | 'Copy' | 'Asset' | 'General'>('Idea');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Sync to localStorage whenever notes change
   useEffect(() => {
@@ -196,11 +198,8 @@ export const QuickNotesCard: React.FC<QuickNotesCardProps> = ({ client }) => {
 
         {notes.length > 0 && (
           <button
-            onClick={() => {
-              if (window.confirm('Clear all quick notes for this brand?')) {
-                setNotes([]);
-              }
-            }}
+            type="button"
+            onClick={() => setShowClearConfirm(true)}
             className="text-[11px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             Clear All
@@ -395,6 +394,53 @@ export const QuickNotesCard: React.FC<QuickNotesCardProps> = ({ client }) => {
           </div>
         )}
       </div>
+
+      {/* Toast Feedback */}
+      {copiedId && typeof document !== 'undefined' && createPortal(
+        <div className="animate-fade-in fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
+          <Check className="h-4 w-4 stroke-[3]" />
+          <span>Snippet copied to clipboard!</span>
+        </div>,
+        document.body
+      )}
+
+      {/* Clear Notes Confirmation Modal */}
+      {showClearConfirm && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in"
+          onClick={() => setShowClearConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-zinc-950 p-5 shadow-2xl relative my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 className="text-sm font-bold text-white">Clear All Quick Notes?</h4>
+            <p className="mt-2 text-xs text-zinc-400">
+              This will remove all {notes.length} notes and snippets stored for {client.companyName}. This action cannot be undone.
+            </p>
+            <div className="mt-5 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="rounded-xl px-3.5 py-1.5 text-xs text-zinc-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNotes([]);
+                  setShowClearConfirm(false);
+                }}
+                className="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-bold text-white transition-colors"
+              >
+                Clear All Notes
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

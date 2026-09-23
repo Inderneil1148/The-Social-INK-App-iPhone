@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Brand, ContentItem, GoogleCalendarEventItem } from '../types/content';
 import { GoogleWorkspaceService } from '../services/googleWorkspace';
 import {
@@ -325,9 +326,9 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
       </div>
 
       {/* Confirmation Modal for Destructive Calendar Deletion (MANDATORY per skill) */}
-      {eventToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100">
+      {eventToDelete && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100 my-auto">
             <div className="flex items-center gap-3 text-rose-400 mb-3">
               <AlertTriangle className="h-6 w-6 shrink-0" />
               <h4 className="text-base font-bold text-slate-100">Confirm Event Deletion</h4>
@@ -363,7 +364,8 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

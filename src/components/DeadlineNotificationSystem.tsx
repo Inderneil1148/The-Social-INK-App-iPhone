@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Brand, ContentItem } from '../types/content';
 import { GoogleWorkspaceService } from '../services/googleWorkspace';
 import {
@@ -380,9 +381,9 @@ export const DeadlineNotificationSystem: React.FC<DeadlineNotificationSystemProp
       </div>
 
       {/* Confirmation Modal Before Sending Email (MANDATORY per Workspace Skill) */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-2xl rounded-2xl border border-amber-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100 max-h-[90vh] flex flex-col">
+      {showConfirmModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-amber-500/40 bg-slate-950 p-4 sm:p-6 shadow-2xl text-slate-100 max-h-[92vh] flex flex-col my-auto overflow-y-auto">
             <div className="flex items-center gap-3 text-amber-400 border-b border-slate-800 pb-3">
               <ShieldAlert className="h-6 w-6 shrink-0" />
               <div>
@@ -441,7 +442,8 @@ export const DeadlineNotificationSystem: React.FC<DeadlineNotificationSystemProp
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

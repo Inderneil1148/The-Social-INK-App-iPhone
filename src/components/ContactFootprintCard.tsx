@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Globe,
   Phone,
@@ -76,11 +77,12 @@ export const ContactFootprintCard: React.FC<ContactFootprintCardProps> = ({
       }}
     >
       {/* Toast Feedback */}
-      {copiedKey && (
-        <div className="animate-fade-in fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
+      {copiedKey && typeof document !== 'undefined' && createPortal(
+        <div className="animate-fade-in fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
           <Check className="h-4 w-4 stroke-[3]" />
           <span>Copied to clipboard!</span>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Card Header */}
@@ -320,13 +322,13 @@ export const ContactFootprintCard: React.FC<ContactFootprintCardProps> = ({
       </div>
 
       {/* Edit Footprint Modal */}
-      {isEditModalOpen && (
+      {isEditModalOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto"
           onClick={() => setIsEditModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-white/20 bg-slate-950 p-6 shadow-2xl"
+            className="w-full max-w-lg rounded-2xl border border-white/20 bg-slate-950 p-4 sm:p-6 shadow-2xl my-auto max-h-[92vh] flex flex-col overflow-y-auto"
             style={{ boxShadow: `0 0 50px -10px ${client.highlightGlow}` }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -451,7 +453,8 @@ export const ContactFootprintCard: React.FC<ContactFootprintCardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

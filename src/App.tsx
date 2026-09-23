@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { User } from 'firebase/auth';
 import {
   initAuth,
@@ -854,9 +855,9 @@ export default function App() {
       />
 
       {/* Delete Item Confirmation Modal (MANDATORY for user confirmation) */}
-      {itemToDelete && (
+      {itemToDelete && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100">
+          <div className="w-full max-w-md rounded-2xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100 my-auto">
             <h4 className="text-base font-bold text-slate-100">Delete Content Creative</h4>
             <p className="mt-2 text-xs text-slate-300">
               Are you sure you want to remove <strong>"{itemToDelete.title}"</strong> from your content plan?
@@ -878,7 +879,8 @@ export default function App() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

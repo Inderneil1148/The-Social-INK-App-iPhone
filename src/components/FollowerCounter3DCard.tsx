@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Users,
   TrendingUp,
@@ -275,13 +276,13 @@ export const FollowerCounter3DCard: React.FC<FollowerCounter3DCardProps> = ({
       </div>
 
       {/* Inline Modal for Editing Follower Count & Milestones */}
-      {isModalOpen && (
+      {isModalOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto"
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 p-6 shadow-2xl relative"
+            className="w-full max-w-lg rounded-2xl border border-white/15 bg-zinc-950 p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col overflow-y-auto"
             style={{
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.95)',
             }}
@@ -433,7 +434,8 @@ export const FollowerCounter3DCard: React.FC<FollowerCounter3DCardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

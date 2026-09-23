@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Image as ImageIcon,
   Maximize2,
@@ -99,11 +100,12 @@ export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
       }}
     >
       {/* Toast Feedback */}
-      {copiedId && (
-        <div className="animate-fade-in fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
+      {copiedId && typeof document !== 'undefined' && createPortal(
+        <div className="animate-fade-in fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black shadow-2xl">
           <Check className="h-4 w-4 stroke-[3]" />
           <span>Asset URL copied to clipboard!</span>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Header */}
@@ -246,17 +248,17 @@ export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
       </div>
 
       {/* Lightbox Preview Modal */}
-      {previewItem && (
+      {previewItem && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto"
           onClick={() => setPreviewItem(null)}
         >
           <div
-            className="relative max-w-4xl w-full rounded-2xl border border-white/20 bg-slate-950 overflow-hidden shadow-2xl"
+            className="relative max-w-4xl w-full rounded-2xl border border-white/20 bg-slate-950 overflow-hidden shadow-2xl my-auto max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
+            <div className="flex items-center justify-between border-b border-white/10 p-4 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-white">{previewItem.title}</h3>
                 <span className="text-xs font-mono text-slate-400">
@@ -298,17 +300,18 @@ export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Add Media Asset Modal */}
-      {isAddModalOpen && (
+      {isAddModalOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto"
           onClick={() => setIsAddModalOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-white/20 bg-slate-950 p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-white/20 bg-slate-950 p-4 sm:p-6 shadow-2xl my-auto max-h-[92vh] flex flex-col overflow-y-auto"
             style={{ boxShadow: `0 0 50px -10px ${client.highlightGlow}` }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -416,7 +419,8 @@ export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

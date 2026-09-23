@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ContentItem, Brand, MetricUpdateRecord } from '../types/content';
 import {
   Eye,
@@ -45,8 +46,6 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
   onUpdateBrandFollowers,
   onUpdateItemMetrics,
 }) => {
-  if (!isOpen) return null;
-
   // Active target can be either this specific item, or brand-wide followers
   const [activeTab, setActiveTab] = useState<'item' | 'brand'>(item ? 'item' : 'brand');
 
@@ -64,6 +63,21 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
   const [followerNote, setFollowerNote] = useState<string>('');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setActiveTab(item ? 'item' : 'brand');
+    setViews(item?.views || 0);
+    setLikes(item?.likes || 0);
+    setReach(item?.reach || 0);
+    setComments(item?.comments || 0);
+    setShares(item?.shares || 0);
+    setInquiries(item?.inquiries || 0);
+    setItemNote('');
+    setFollowers(brand.currentFollowers || 0);
+    setFollowerNote('');
+    setSavedSuccess(false);
+  }, [isOpen, item, brand]);
 
   // Engagement calculation
   const totalInteractions = likes + comments + shares + inquiries;
@@ -119,7 +133,9 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
     }, 900);
   };
 
-  return (
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-amber-500/30 bg-zinc-950 p-4 sm:p-6 shadow-2xl text-slate-100 my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
@@ -417,6 +433,7 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

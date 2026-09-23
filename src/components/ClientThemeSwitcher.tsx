@@ -182,7 +182,7 @@ export const ClientThemeSwitcher: React.FC<ClientThemeSwitcherProps> = ({
   };
 
   return (
-    <div className="relative z-40 border-b border-white/10 bg-black/95 px-3 sm:px-6 py-2 sm:py-2.5 backdrop-blur-xl">
+    <div className={`relative border-b border-white/10 bg-black/95 px-3 sm:px-6 py-2 sm:py-2.5 backdrop-blur-xl transition-all ${isDropdownOpen ? 'z-[100]' : 'z-40'}`}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2.5 sm:gap-4">
         {/* Left: Active Client Badge & Switcher Dropdown */}
         <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-initial min-w-0">
@@ -207,11 +207,11 @@ export const ClientThemeSwitcher: React.FC<ClientThemeSwitcherProps> = ({
             {isDropdownOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs"
+                  className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs"
                   onClick={() => setIsDropdownOpen(false)}
                 />
                 <div
-                  className="absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm rounded-2xl border border-white/20 bg-zinc-950 p-2 sm:p-2.5 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.98)] z-50 animate-fade-in"
+                  className="absolute left-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[340px] sm:max-w-sm rounded-2xl border border-white/20 bg-zinc-950 p-2 sm:p-2.5 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.98)] z-[101] animate-fade-in"
                 >
                   <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/10">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
@@ -372,7 +372,7 @@ export const ClientThemeSwitcher: React.FC<ClientThemeSwitcherProps> = ({
           onClick={() => setIsAddModalOpen(false)}
         >
           <div
-            className="relative w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl my-auto max-h-[92vh] flex flex-col"
+            className="relative w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl my-auto max-h-[92vh] flex flex-col overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
