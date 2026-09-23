@@ -80,9 +80,9 @@ export const BrandModal: React.FC<BrandModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="relative w-full max-w-lg rounded-2xl border border-amber-500/30 bg-slate-950 p-6 shadow-2xl text-slate-100">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
+      <div className="relative w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl text-slate-100 my-auto max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-amber-400" />
             <h3 className="text-base font-bold text-slate-100">
@@ -94,7 +94,7 @@ export const BrandModal: React.FC<BrandModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4 overflow-y-auto pr-1">
           <div>
             <label className="text-xs font-semibold text-slate-300">Brand Name*</label>
             <input

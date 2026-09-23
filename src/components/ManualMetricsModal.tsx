@@ -120,16 +120,16 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-amber-500/30 bg-slate-950 p-6 shadow-2xl text-slate-100">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-amber-500/30 bg-zinc-950 p-4 sm:p-6 shadow-2xl text-slate-100 my-auto max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-start justify-between border-b border-slate-800 pb-3 sm:pb-4 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                <TrendingUp className="h-5 w-5" />
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <h2 className="text-xl font-bold text-slate-100">Manual Metrics Audit & Verification</h2>
+              <h2 className="text-base sm:text-xl font-bold text-slate-100">Manual Metrics Audit & Verification</h2>
             </div>
             <p className="mt-1 text-xs text-slate-400">
               Personal verified numbers for <strong className="text-amber-300">{brand.name}</strong>. No automated third-party scrapers.
@@ -145,7 +145,7 @@ export const ManualMetricsModal: React.FC<ManualMetricsModalProps> = ({
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex border-b border-slate-800 text-sm">
+        <div className="mt-3 sm:mt-4 flex border-b border-slate-800 text-xs sm:text-sm shrink-0 overflow-x-auto">
           {item && (
             <button
               onClick={() => setActiveTab('item')}

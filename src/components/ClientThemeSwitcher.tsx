@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   Plus,
@@ -181,181 +182,197 @@ export const ClientThemeSwitcher: React.FC<ClientThemeSwitcherProps> = ({
   };
 
   return (
-    <div className="relative z-30 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-black/90 px-4 sm:px-6 py-2.5 backdrop-blur-xl">
-      {/* Left: Active Client Badge & Switcher Dropdown */}
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-zinc-950 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:border-white/30 hover:bg-zinc-900"
-          >
-            {/* Swatch indicator */}
-            <span
-              className="h-2.5 w-2.5 rounded-full border border-white/40 shadow-sm"
-              style={{ backgroundColor: activeClient?.primaryColor || '#ffffff' }}
-            />
-            <span className="max-w-[180px] sm:max-w-[240px] truncate">
-              {activeClient ? activeClient.companyName : 'Zero Brand Kits (0)'}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
-          </button>
-
-          {/* Dropdown Menu */}
-          {isDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsDropdownOpen(false)}
+    <div className="relative z-40 border-b border-white/10 bg-black/95 px-3 sm:px-6 py-2 sm:py-2.5 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2.5 sm:gap-4">
+        {/* Left: Active Client Badge & Switcher Dropdown */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 sm:flex-initial min-w-0">
+          <div className="relative flex-1 sm:flex-initial">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2 sm:gap-2.5 rounded-xl border border-white/15 bg-zinc-950 px-3 sm:px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:border-white/30 hover:bg-zinc-900"
+            >
+              {/* Swatch indicator */}
+              <span
+                className="h-2.5 w-2.5 rounded-full border border-white/40 shadow-sm shrink-0"
+                style={{ backgroundColor: activeClient?.primaryColor || '#ffffff' }}
               />
-              <div
-                className="absolute left-0 top-full mt-2 w-72 rounded-2xl border border-white/20 bg-zinc-950 p-2 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.95)] z-50 animate-fade-in"
-                style={{ boxShadow: `0 25px 60px -10px rgba(0,0,0,0.95)` }}
-              >
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  Switch Client Brand Kit
-                </div>
+              <span className="max-w-[140px] xs:max-w-[180px] sm:max-w-[220px] md:max-w-[280px] truncate text-left">
+                {activeClient ? activeClient.companyName : 'Zero Brand Kits (0)'}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            </button>
 
-              <div className="mt-1 space-y-1">
-                {clients.length === 0 ? (
-                  <div className="px-3 py-3 text-center text-xs text-zinc-500">
-                    No brand kits configured yet.
-                  </div>
-                ) : (
-                  clients.map((c) => {
-                    const isSelected = activeClient ? c.id === activeClient.id : false;
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          onSelectClient(c.id);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
-                          isSelected
-                            ? 'bg-white text-black font-bold'
-                            : 'text-zinc-300 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <span
-                            className="h-2.5 w-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: c.primaryColor }}
-                          />
-                          <span className="truncate">{c.companyName}</span>
-                        </div>
-                        {isSelected && <Check className="h-3.5 w-3.5 text-black shrink-0" />}
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="mt-2 border-t border-white/10 pt-2">
-                <button
-                  onClick={() => {
-                    setIsDropdownOpen(false);
-                    setIsAddModalOpen(true);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white hover:bg-white/10 transition-colors"
+            {/* Dropdown Menu - Device adaptive for mobile, tablet, and laptop */}
+            {isDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs"
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                <div
+                  className="absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm rounded-2xl border border-white/20 bg-zinc-950 p-2 sm:p-2.5 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.98)] z-50 animate-fade-in"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>Add New Client Brand Kit</span>
-                </button>
-              </div>
+                  <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/10">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Select Brand Kit
+                    </span>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {clients.length} {clients.length === 1 ? 'Kit' : 'Kits'}
+                    </span>
+                  </div>
+
+                  <div className="mt-1.5 max-h-64 overflow-y-auto space-y-1 pr-0.5">
+                    {clients.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-xs text-zinc-500">
+                        No brand kits configured yet.
+                      </div>
+                    ) : (
+                      clients.map((c) => {
+                        const isSelected = activeClient ? c.id === activeClient.id : false;
+                        return (
+                          <button
+                            key={c.id}
+                            onClick={() => {
+                              onSelectClient(c.id);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                              isSelected
+                                ? 'bg-white text-black font-bold'
+                                : 'text-zinc-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <span
+                                className="h-3 w-3 rounded-full shrink-0 border border-black/20"
+                                style={{ backgroundColor: c.primaryColor }}
+                              />
+                              <div className="flex flex-col items-start truncate">
+                                <span className="truncate">{c.companyName}</span>
+                                <span
+                                  className={`text-[10px] font-normal ${
+                                    isSelected ? 'text-zinc-700' : 'text-zinc-500'
+                                  }`}
+                                >
+                                  {c.category}
+                                </span>
+                              </div>
+                            </div>
+                            {isSelected && <Check className="h-3.5 w-3.5 text-black shrink-0 ml-2" />}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="mt-2 border-t border-white/10 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        setIsAddModalOpen(true);
+                      }}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                      <span>Create New Brand Kit</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Client Theme Palette Visualizer Pills - Hidden on mobile, visible on tablet & laptop */}
+          {activeClient && (
+            <div className="hidden sm:flex items-center gap-1.5 rounded-xl bg-zinc-950 px-2.5 py-1.5 border border-white/10">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold mr-1 hidden md:inline">
+                Palette:
+              </span>
+              <span
+                className="h-3 w-3 rounded-full border border-white/20"
+                title={`Primary: ${activeClient.primaryColor}`}
+                style={{ backgroundColor: activeClient.primaryColor }}
+              />
+              <span
+                className="h-3 w-3 rounded-full border border-white/20"
+                title={`Secondary: ${activeClient.secondaryColor}`}
+                style={{ backgroundColor: activeClient.secondaryColor }}
+              />
+              <span
+                className="h-3 w-3 rounded-full border border-white/20"
+                title={`Accent: ${activeClient.accentColor}`}
+                style={{ backgroundColor: activeClient.accentColor }}
+              />
             </div>
-          </>
-        )}
+          )}
         </div>
 
-        {/* Client Theme Palette Visualizer Pills */}
-        {activeClient && (
-          <div className="hidden md:flex items-center gap-1.5 rounded-xl bg-zinc-950 px-2.5 py-1.5 border border-white/10">
-            <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold mr-1">
-              Palette:
-            </span>
-            <span
-              className="h-3 w-3 rounded-full border border-white/20"
-              title={`Primary: ${activeClient.primaryColor}`}
-              style={{ backgroundColor: activeClient.primaryColor }}
-            />
-            <span
-              className="h-3 w-3 rounded-full border border-white/20"
-              title={`Secondary: ${activeClient.secondaryColor}`}
-              style={{ backgroundColor: activeClient.secondaryColor }}
-            />
-            <span
-              className="h-3 w-3 rounded-full border border-white/20"
-              title={`Accent: ${activeClient.accentColor}`}
-              style={{ backgroundColor: activeClient.accentColor }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Right: Contrast mode, Export Brand Kit JSON, Add Client */}
-      <div className="flex items-center gap-2">
-        {/* Contrast Toggle */}
-        <button
-          type="button"
-          onClick={onToggleHighContrast}
-          className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors"
-          title="Toggle High-Contrast Minimal Monochrome"
-        >
-          {isHighContrastMode ? (
-            <>
-              <Sun className="h-3.5 w-3.5 text-white" />
-              <span className="hidden sm:inline">Matte Noir</span>
-            </>
-          ) : (
-            <>
-              <Moon className="h-3.5 w-3.5 text-zinc-400" />
-              <span className="hidden sm:inline">Monochrome</span>
-            </>
-          )}
-        </button>
-
-        {/* Export Brand Kit JSON */}
-        {activeClient && (
+        {/* Right: Controls & Actions (Responsive for mobile, tablet, laptop) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Contrast Toggle */}
           <button
             type="button"
-            onClick={handleExportJson}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950 hover:bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition-colors"
-            title="Export complete Brand Kit as JSON"
+            onClick={onToggleHighContrast}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950 px-2.5 sm:px-3 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors"
+            title="Toggle High-Contrast Minimal Monochrome"
           >
-            {copiedExport ? (
+            {isHighContrastMode ? (
               <>
-                <Check className="h-3.5 w-3.5 text-white" />
-                <span>Downloaded!</span>
+                <Sun className="h-3.5 w-3.5 text-white" />
+                <span className="hidden md:inline">Matte Noir</span>
               </>
             ) : (
               <>
-                <Download className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Export Kit</span>
+                <Moon className="h-3.5 w-3.5 text-zinc-400" />
+                <span className="hidden md:inline">Monochrome</span>
               </>
             )}
           </button>
-        )}
 
-        {/* Add Client Button */}
-        <button
-          type="button"
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold bg-white hover:bg-zinc-200 text-black transition-all shadow-sm"
-        >
-          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-          <span>New Client</span>
-        </button>
+          {/* Export Brand Kit JSON */}
+          {activeClient && (
+            <button
+              type="button"
+              onClick={handleExportJson}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-zinc-950 hover:bg-zinc-900 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-zinc-200 transition-colors"
+              title="Export complete Brand Kit as JSON"
+            >
+              {copiedExport ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-white" />
+                  <span className="hidden sm:inline">Downloaded!</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Export</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Add Client Button */}
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl px-3 sm:px-3.5 py-1.5 text-xs font-bold bg-white hover:bg-zinc-200 text-black transition-all shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+            <span className="hidden xs:inline">New Client</span>
+            <span className="xs:hidden">New</span>
+          </button>
+        </div>
       </div>
 
-      {/* Add Client Modal */}
-      {isAddModalOpen && (
+      {/* Add Client Modal - Rendered via createPortal to document.body to ensure zero tab overlap */}
+      {isAddModalOpen && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 animate-fade-in overflow-y-auto"
           onClick={() => setIsAddModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-white/20 bg-slate-950 p-6 shadow-2xl"
+            className="relative w-full max-w-lg rounded-2xl sm:rounded-3xl border border-white/20 bg-zinc-950 p-4 sm:p-6 shadow-2xl my-auto max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -500,7 +517,8 @@ export const ClientThemeSwitcher: React.FC<ClientThemeSwitcherProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

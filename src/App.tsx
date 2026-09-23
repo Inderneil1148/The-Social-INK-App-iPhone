@@ -428,32 +428,32 @@ export default function App() {
       }
     >
       {/* Top Main Navigation Bar - Minimalist Monochrome */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3">
           {/* Logo & Brand Switcher */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-black shadow-md font-black transition-transform hover:scale-105">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-white text-black shadow-md font-black transition-transform hover:scale-105">
               <Sparkles className="h-4 w-4 fill-black" />
             </div>
 
-            <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm sm:text-base font-bold tracking-tight text-white">
+            <div className="flex flex-col justify-center min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-base font-bold tracking-tight text-white truncate">
                   The Social Brand <span className="text-zinc-300 font-light">Kit</span>
                 </span>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-300 border border-white/10 uppercase tracking-wider">
+                <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-semibold text-zinc-300 border border-white/10 uppercase tracking-wider">
                   STUDIO
                 </span>
               </div>
 
               {/* Active Brand Selector */}
-              <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                <Building2 className="h-3 w-3 text-zinc-400" />
-                <span className="font-medium text-zinc-300">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-zinc-400 min-w-0">
+                <Building2 className="h-3 w-3 text-zinc-400 shrink-0" />
+                <span className="font-medium text-zinc-300 truncate max-w-[130px] xs:max-w-[180px] sm:max-w-[260px] md:max-w-none">
                   {activeClientKit ? activeClientKit.companyName : 'Zero Brands Configured'}
                 </span>
                 {activeClientKit && (
-                  <span className="text-zinc-500 font-mono text-[10px]">
+                  <span className="text-zinc-500 font-mono text-[10px] hidden sm:inline shrink-0">
                     ({activeClientKit.socialMilestones[0]?.handle || '@brand'})
                   </span>
                 )}
@@ -462,13 +462,13 @@ export default function App() {
           </div>
 
           {/* Minimalist Live Status Indicator */}
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 text-xs text-zinc-400 shrink-0 ml-2">
             <span
               className={`h-2 w-2 rounded-full ${
                 activeClientKit ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'
               }`}
             />
-            <span className="font-mono text-[11px] text-zinc-300">
+            <span className="font-mono text-[11px] text-zinc-300 hidden xs:inline">
               {activeClientKit ? 'Live Kit' : 'Blank Studio'}
             </span>
           </div>
@@ -487,19 +487,19 @@ export default function App() {
         setIsAddModalOpen={setIsAddClientKitModalOpen}
       />
 
-      {/* Main Content Area */}
-      <main className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
+      {/* Main Content Area - Cohesive CSS Grid Layout with Stacking Isolation */}
+      <main className="relative z-0 isolate mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 auto-rows-max items-start">
         {!activeClientKit ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/15 bg-zinc-950/60 p-12 sm:p-20 text-center backdrop-blur-xl shadow-2xl">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white shadow-inner">
-              <Sparkles className="h-8 w-8 stroke-[1.5]" />
+          <div className="w-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/15 bg-zinc-950/60 p-6 sm:p-12 md:p-16 text-center backdrop-blur-xl shadow-2xl relative z-0 isolate">
+            <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-white shadow-inner">
+              <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 stroke-[1.5]" />
             </div>
 
-            <span className="mt-5 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-mono text-[11px] text-zinc-300 uppercase tracking-widest">
-              Zero Database Records
+            <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white border border-white/15">
+              Clean Slate Active
             </span>
 
-            <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h2 className="mt-3 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               Studio Database is Blank
             </h2>
 
@@ -509,62 +509,67 @@ export default function App() {
 
             <button
               onClick={() => setIsAddClientKitModalOpen(true)}
-              className="mt-6 flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black px-6 py-3 text-sm font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
+              className="mt-6 flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold shadow-lg transition-all hover:scale-105 active:scale-95"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>+ Create First Brand Kit</span>
             </button>
           </div>
         ) : viewMode === 'client' ? (
-          <ClientDashboard
-            brand={activeBrand!}
-            items={brandContentItems}
-            onOpenAdmin={() => setViewMode('admin')}
-          />
+          <div className="w-full min-w-0 relative z-0 isolate">
+            <ClientDashboard
+              brand={activeBrand!}
+              items={brandContentItems}
+              onOpenAdmin={() => setViewMode('admin')}
+            />
+          </div>
         ) : (
           /* Admin Studio View Mode */
-          <div className="space-y-6">
-            {/* Top Quick Actions Bar - Minimalist Monochrome & Perfectly Aligned */}
+          <div className="w-full min-w-0 grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 relative z-0 isolate">
+            {/* Top Quick Actions Bar - Device-adaptive for Mobile, Tablet, and Laptop */}
             {activeBrand && (
-              <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl border border-white/10 bg-zinc-950/90 p-4 sm:px-6 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.6)]">
+              <div className="relative z-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 rounded-2xl border border-white/10 bg-zinc-950/90 p-4 sm:p-5 lg:px-6 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.6)]">
                 {/* Left: Brand Identity & Aligned Metrics */}
-                <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-                        Active Portfolio
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-                        {activeBrand.name}
-                      </h2>
-                      <button
-                        onClick={() => {
-                          setEditingBrand(activeBrand);
-                          setIsBrandModalOpen(true);
-                        }}
-                        className="text-[10px] font-mono text-zinc-400 hover:text-white px-2 py-0.5 rounded border border-white/10 bg-white/5 transition-colors"
-                      >
-                        Edit
-                      </button>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between lg:justify-start gap-4 sm:gap-6">
+                  <div className="flex items-center justify-between sm:justify-start gap-3">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                          Active Portfolio
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white truncate max-w-[200px] sm:max-w-xs md:max-w-none">
+                          {activeBrand.name}
+                        </h2>
+                        <button
+                          onClick={() => {
+                            setEditingBrand(activeBrand);
+                            setIsBrandModalOpen(true);
+                          }}
+                          className="text-[10px] font-mono text-zinc-400 hover:text-white px-2 py-0.5 rounded border border-white/10 bg-white/5 transition-colors shrink-0"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="hidden sm:block h-8 w-px bg-white/10" />
+                  <div className="hidden sm:block h-8 w-px bg-white/10 shrink-0" />
 
-                  <div className="flex items-center gap-5 text-xs">
+                  {/* Metrics: Side-by-side on mobile, aligned on tab & desktop */}
+                  <div className="grid grid-cols-2 sm:flex items-center gap-4 sm:gap-6 border-t border-white/10 pt-3 sm:border-t-0 sm:pt-0">
                     <div className="flex flex-col">
                       <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
                         Verified Views
                       </span>
-                      <span className="font-mono font-bold text-white text-sm tracking-tight mt-0.5">
+                      <span className="font-mono font-bold text-white text-base sm:text-lg tracking-tight mt-0.5">
                         {totalBrandViews.toLocaleString()}
                       </span>
                     </div>
 
-                    <div className="h-6 w-px bg-white/10" />
+                    <div className="hidden sm:block h-6 w-px bg-white/10" />
 
                     <div className="flex flex-col">
                       <span className="text-zinc-400 text-[10px] font-mono uppercase tracking-wider">
@@ -584,14 +589,14 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Right: Perfectly Aligned Minimalist Monochrome Actions */}
-                <div className="flex items-center gap-2.5 self-start md:self-auto">
+                {/* Right: Actions - Full width equal grid on mobile, inline row on tab & desktop */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2 w-full lg:w-auto border-t border-white/10 pt-3 lg:border-t-0 lg:pt-0">
                   <button
                     onClick={() => {
                       setMetricsTargetItem(null);
                       setIsMetricsModalOpen(true);
                     }}
-                    className="flex items-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs px-4 py-2 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs px-4 py-2.5 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
                   >
                     <Eye className="h-3.5 w-3.5 stroke-[2.5]" />
                     <span>Update Views &amp; Followers</span>
@@ -602,7 +607,7 @@ export default function App() {
                       setEditingContentItem(null);
                       setIsContentModalOpen(true);
                     }}
-                    className="flex items-center gap-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border border-white/15 hover:border-white/30 font-medium text-xs px-3.5 py-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border border-white/15 hover:border-white/30 font-medium text-xs px-3.5 py-2.5 transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>Add Creative</span>
@@ -611,17 +616,17 @@ export default function App() {
               </div>
             )}
 
-            {/* Admin Tool Navigation Tabs - Minimalist Monochrome */}
-            <div className="flex flex-wrap items-center gap-1.5 border-b border-white/10 pb-2 text-xs">
+            {/* Admin Tool Navigation Tabs - Scrollable on mobile, wrapping cleanly on tab/laptop */}
+            <div className="relative z-0 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-2 pt-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap text-xs border-b border-white/10">
               <button
                 onClick={() => setAdminTab('brand-kit')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'brand-kit'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
                 <span>Brand Kit Workspace</span>
                 <span
                   className={`rounded px-1.5 py-0.2 text-[9px] font-bold ${
@@ -634,61 +639,61 @@ export default function App() {
 
               <button
                 onClick={() => setAdminTab('reels')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'reels'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <LayoutGrid className="h-3.5 w-3.5" />
+                <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
                 <span>3D Stage &amp; Reels ({brandContentItems.length})</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('sheets')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'sheets'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" />
                 <span>Google Sheets &amp; Analyzer</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('calendar')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'calendar'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Calendar className="h-3.5 w-3.5" />
+                <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>Google Calendar</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('notifications')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'notifications'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Bell className="h-3.5 w-3.5" />
+                <Bell className="h-3.5 w-3.5 shrink-0" />
                 <span>Deadline Alerts &amp; Gmail</span>
               </button>
 
               <button
                 onClick={() => setAdminTab('tasks')}
-                className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
+                className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 transition-all font-semibold ${
                   adminTab === 'tasks'
                     ? 'bg-white text-black font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <CheckSquare className="h-3.5 w-3.5" />
+                <CheckSquare className="h-3.5 w-3.5 shrink-0" />
                 <span>Google Tasks</span>
               </button>
             </div>
@@ -850,7 +855,7 @@ export default function App() {
 
       {/* Delete Item Confirmation Modal (MANDATORY for user confirmation) */}
       {itemToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in">
           <div className="w-full max-w-md rounded-2xl border border-rose-500/40 bg-slate-950 p-6 shadow-2xl text-slate-100">
             <h4 className="text-base font-bold text-slate-100">Delete Content Creative</h4>
             <p className="mt-2 text-xs text-slate-300">
